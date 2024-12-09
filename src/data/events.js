@@ -1,5 +1,5 @@
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "./firebase-config";
+import { db } from "../../firebase-config.js";
 
 const events = async () => {
   try {
@@ -13,4 +13,4 @@ const events = async () => {
   }
 };
 
-//export default events;
+export default events;
