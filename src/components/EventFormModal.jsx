@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
@@ -13,30 +13,36 @@ const EventFormModal = ({
   addActivity,
   addEvent,
 }) => {
-  const [imageUploading, setImageUploading] = useState(false); 
+  const [imageUploading, setImageUploading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]);
+
+  // Đồng bộ uploadedImages với newEvent.image
+  useEffect(() => {
+    if (newEvent.image) {
+      setUploadedImages(newEvent.image);
+    }
+  }, [newEvent.image]);
+
   const handleImageUpload = async (file, context = "sidebar", activityIndex = null) => {
     setImageUploading(true);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", "unsigned");
-  
+
     try {
       const res = await axios.post(
         "https://api.cloudinary.com/v1_1/dxggv6rnr/image/upload",
         formData
       );
       const imagePath = res.data.secure_url;
-  
+
       if (context === "sidebar") {
-        // Thêm ảnh vào danh sách uploadedImages (sidebar)
         setUploadedImages((prev) => {
-          const updatedImages = prev.filter((_, i) => i !== indexToRemove);
+          const updatedImages = [...prev, imagePath];
           handleInputChange({ target: { name: "image", value: updatedImages } });
           return updatedImages;
-        });        
+        });
       } else if (context === "activity" && activityIndex !== null) {
-        // Thêm ảnh vào danh sách images của activity
         const updatedActivities = [...newEvent.activities];
         if (!updatedActivities[activityIndex].image) {
           updatedActivities[activityIndex].image = [];
@@ -47,7 +53,7 @@ const EventFormModal = ({
         });
       }
       toast.success("Upload thành công!", {
-        position: "top-right", // Đúng cú pháp
+        position: "top-right",
       });
     } catch (error) {
       console.error("Lỗi khi upload ảnh:", error);
@@ -58,8 +64,7 @@ const EventFormModal = ({
       setImageUploading(false);
     }
   };
-  
-  
+
   const handleRemoveImage = (indexToRemove, context = "sidebar", activityIndex = null) => {
     if (context === "sidebar") {
       setUploadedImages((prev) => {
@@ -69,13 +74,13 @@ const EventFormModal = ({
       });
     } else if (context === "activity" && activityIndex !== null) {
       const updatedActivities = [...newEvent.activities];
-      const updatedImages = updatedActivities[activityIndex].image.filter((_, i) => i !== indexToRemove);
+      const updatedImages = updatedActivities[activityIndex].image.filter(
+        (_, i) => i !== indexToRemove
+      );
       updatedActivities[activityIndex].image = updatedImages;
       handleActivityChange(activityIndex, { target: { name: "image", value: updatedImages } });
     }
   };
-  
-  
 
   return (
     <Modal
@@ -100,9 +105,7 @@ const EventFormModal = ({
     >
       {/* Sidebar bên trái */}
       <div style={{ flex: "1", display: "flex", flexDirection: "column", gap: "15px" }}>
-        <h2 className="text-2xl font-bold mb-4 text-gray-700 text-center">
-          Thêm sự kiện mới
-        </h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-700 text-center">Thêm sự kiện mới</h2>
         <div>
           <label className="block text-sm font-medium text-gray-600">Tiêu đề:</label>
           <input
@@ -136,40 +139,36 @@ const EventFormModal = ({
           />
         </div>
         <div>
-  <label className="block text-sm font-medium text-gray-600">
-    Hình ảnh:
-  </label>
-  <input
-  type="file"
-  accept="image/*"
-  onChange={(e) => handleImageUpload(e.target.files[0])}
-  className="w-full p-3 mt-2 border border-gray-300 rounded-lg"
-/>
+          <label className="block text-sm font-medium text-gray-600">Hình ảnh:</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleImageUpload(e.target.files[0])}
+            className="w-full p-3 mt-2 border border-gray-300 rounded-lg"
+          />
 
-  {imageUploading && (
-    <p className="text-sm text-blue-500 mt-2">Đang upload hình ảnh...</p>
-  )}
+          {imageUploading && <p className="text-sm text-blue-500 mt-2">Đang upload hình ảnh...</p>}
 
-  {/* Danh sách hình ảnh đã tải lên */}
-  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
-    {uploadedImages.map((img, idx) => (
-      <div key={idx} className="relative">
-        <img
-          src={img}
-          alt={`Ảnh ${idx + 1}`}
-          className="w-full h-auto rounded-lg shadow-md"
-        />
-      <button
-        type="button"
-        className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1 hover:bg-red-600"
-        onClick={() => handleRemoveImage(imgIdx)}
-      >
-        X
-      </button>
-      </div>
-    ))}
-  </div>
-</div>
+          {/* Danh sách hình ảnh đã tải lên */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+            {uploadedImages.map((img, idx) => (
+              <div key={idx} className="relative">
+                <img
+                  src={img}
+                  alt={`Ảnh ${idx + 1}`}
+                  className="w-full h-auto rounded-lg shadow-md"
+                />
+                <button
+                  type="button"
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1 hover:bg-red-600"
+                  onClick={() => handleRemoveImage(idx, "sidebar")}
+                >
+                  X
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <button
           type="button"
@@ -210,37 +209,38 @@ const EventFormModal = ({
             <div className="mb-3">
               <label className="text-sm font-medium text-gray-600">Hình ảnh hoạt động:</label>
               <input
-  type="file"
-  accept="image/*"
-  onChange={(e) => {
-    const file = e.target.files[0];
-    if (file) {
-      handleImageUpload(file, "activity", index);
-    }
-  }}
-  className="w-full p-2 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-/>
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    handleImageUpload(file, "activity", index);
+                  }
+                }}
+                className="w-full p-2 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
 
-
-  {/* Hiển thị danh sách hình ảnh */}
-  {activity.image && activity.image.length > 0 && (
-    <div className="grid grid-cols-2 gap-4 mt-2">
-      {activity.image.map((img, imgIdx) => (
-        <div key={imgIdx} className="relative">
-          <img src={img} alt={`Hoạt động ${index + 1} - Ảnh ${imgIdx + 1}`} className="w-full h-auto rounded-lg shadow-md" />
-          <button
-            type="button"
-            className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1 hover:bg-red-600"
-            onClick={() => handleRemoveImage(imgIdx, "activity", index)}
-          >
-            X
-          </button>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
-
+              {activity.image && activity.image.length > 0 && (
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  {activity.image.map((img, imgIdx) => (
+                    <div key={imgIdx} className="relative">
+                      <img
+                        src={img}
+                        alt={`Hoạt động ${index + 1} - Ảnh ${imgIdx + 1}`}
+                        className="w-full h-auto rounded-lg shadow-md"
+                      />
+                      <button
+                        type="button"
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1 hover:bg-red-600"
+                        onClick={() => handleRemoveImage(imgIdx, "activity", index)}
+                      >
+                        X
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         ))}
         <div className="flex justify-center mt-4">
