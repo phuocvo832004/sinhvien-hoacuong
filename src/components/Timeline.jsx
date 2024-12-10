@@ -79,7 +79,7 @@ const Timeline = () => {
         ...prevEvents,
         { id: docRef.id, ...newEventData }
       ]);
-      setIsFormModalOpen(false); // Đóng modal sau khi lưu sự kiện
+      setIsFormModalOpen(false); 
     } catch (error) {
       console.error("Error adding event: ", error);
     }

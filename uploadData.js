@@ -5,7 +5,7 @@ import events from './src/data/events.js';
 
 
 const uploadEvents = async () => {
-  const eventsRef = collection(db, "events"); // Tạo Collection tên "events"
+  const eventsRef = collection(db, "events"); 
 
   for (const event of events) {
     const docRef = await addDoc(eventsRef, event);
