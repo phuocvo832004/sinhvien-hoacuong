@@ -123,6 +123,8 @@ const Timeline = () => {
       boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
       padding: "10px",
       border: "1px solid #ddd",
+      width: "200px", // Tăng chiều rộng node
+      minHeight: "100px",
     },
   }));
 
@@ -167,7 +169,7 @@ const Timeline = () => {
         {/* Nút thêm sự kiện */}
         <button
           onClick={() => setIsFormModalOpen(true)}  // Mở modal nhập liệu
-          className="absolute top-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600"
+          className="absolute top-5 right-5 bg-[#fc536c] text-white py-2 px-4 rounded-lg transform transition-transform duration-300 hover:bg-[#cc043d] hover:scale-90"
         >
           Thêm sự kiện
         </button>

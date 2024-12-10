@@ -84,7 +84,7 @@ const EventFormModal = ({
       contentLabel="Thêm sự kiện"
       style={{
         content: {
-          width: "70wh",
+          width: "70vw",
           height: "70vh",
           margin: "auto",
           padding: "20px",
