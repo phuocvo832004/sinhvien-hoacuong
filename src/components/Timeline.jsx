@@ -123,16 +123,16 @@ const Timeline = () => {
       boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
       padding: "10px",
       border: "1px solid #ddd",
-      width: "200px", // Tăng chiều rộng node
+      width: "250px", 
       minHeight: "100px",
     },
   }));
 
   // Tạo edges từ events state
   const edges = events.map((event, index) => {
-    if (index === 0) return null; // Không tạo edge cho sự kiện đầu tiên
+    if (index === 0) return null; 
     return {
-      id: `e${events[index - 1].id}-${event.id}`, // Đảm bảo kết nối từ sự kiện trước đó
+      id: `e${events[index - 1].id}-${event.id}`, 
       source: `${events[index - 1].id}`,
       target: `${event.id}`,
       animated: true,

@@ -10,6 +10,7 @@ const ImageModal = ({ isOpen, src, onClose }) => (
     onRequestClose={onClose}
     className="image-view-modal"
     overlayClassName="modal-overlay"
+    preventScroll={false}
   >
     <div className="flex items-center justify-center h-[90vh]">
       {src && <img src={src} alt="Preview" className="max-w-full max-h-full rounded-lg shadow-lg" />}

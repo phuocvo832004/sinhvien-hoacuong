@@ -45,7 +45,12 @@
   padding: 0; /* Bỏ padding, vì đã có layout cụ thể */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Hiệu ứng bóng nổi bật */
   overflow: hidden;
+  flex-direction: column;
   animation: slideIn 0.4s ease-out; /* Hiệu ứng slide mượt */
+}
+
+.event-modal .flex-1 {
+  overflow-y: auto;
 }
 
 .event-modal .close-button {
