@@ -30,19 +30,20 @@ const EventFormModal = ({
   
       if (context === "sidebar") {
         // Thêm ảnh vào danh sách uploadedImages (sidebar)
-        setUploadedImages((prev) => [...prev, imagePath]);
-        handleInputChange({
-          target: { name: "image", value: [...uploadedImages, imagePath] },
-        });
+        setUploadedImages((prev) => {
+          const updatedImages = prev.filter((_, i) => i !== indexToRemove);
+          handleInputChange({ target: { name: "image", value: updatedImages } });
+          return updatedImages;
+        });        
       } else if (context === "activity" && activityIndex !== null) {
         // Thêm ảnh vào danh sách images của activity
         const updatedActivities = [...newEvent.activities];
-        if (!updatedActivities[activityIndex].images) {
-          updatedActivities[activityIndex].images = [];
+        if (!updatedActivities[activityIndex].image) {
+          updatedActivities[activityIndex].image = [];
         }
-        updatedActivities[activityIndex].images.push(imagePath);
+        updatedActivities[activityIndex].image.push(imagePath);
         handleActivityChange(activityIndex, {
-          target: { name: "images", value: updatedActivities[activityIndex].images },
+          target: { name: "image", value: updatedActivities[activityIndex].image },
         });
       }
       toast.success("Upload thành công!", {
@@ -51,22 +52,29 @@ const EventFormModal = ({
     } catch (error) {
       console.error("Lỗi khi upload ảnh:", error);
       toast.error("Upload thất bại, vui lòng thử lại!", {
-        position: toast.POSITION.TOP_RIGHT, 
+        position: toast.POSITION.TOP_RIGHT,
       });
     } finally {
       setImageUploading(false);
     }
   };
   
-  const handleRemoveImage = (indexToRemove) => {
-    setUploadedImages((prev) => {
-      const updatedImages = prev.filter((_, i) => i !== indexToRemove);
-      handleInputChange({
-        target: { name: "image", value: updatedImages },
+  
+  const handleRemoveImage = (indexToRemove, context = "sidebar", activityIndex = null) => {
+    if (context === "sidebar") {
+      setUploadedImages((prev) => {
+        const updatedImages = prev.filter((_, i) => i !== indexToRemove);
+        handleInputChange({ target: { name: "image", value: updatedImages } });
+        return updatedImages;
       });
-      return updatedImages;
-    });
+    } else if (context === "activity" && activityIndex !== null) {
+      const updatedActivities = [...newEvent.activities];
+      const updatedImages = updatedActivities[activityIndex].image.filter((_, i) => i !== indexToRemove);
+      updatedActivities[activityIndex].image = updatedImages;
+      handleActivityChange(activityIndex, { target: { name: "image", value: updatedImages } });
+    }
   };
+  
   
 
   return (
@@ -151,18 +159,13 @@ const EventFormModal = ({
           alt={`Ảnh ${idx + 1}`}
           className="w-full h-auto rounded-lg shadow-md"
         />
-        <button
-          type="button"
-          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
-          onClick={() => {
-            // Xóa ảnh khỏi danh sách
-            const newImages = uploadedImages.filter((_, i) => i !== idx);
-            setUploadedImages(newImages);
-            handleInputChange({ target: { name: "image", value: newImages } });
-          }}
-        >
-          X
-        </button>
+      <button
+        type="button"
+        className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1 hover:bg-red-600"
+        onClick={() => handleRemoveImage(imgIdx)}
+      >
+        X
+      </button>
       </div>
     ))}
   </div>
@@ -220,19 +223,18 @@ const EventFormModal = ({
 
 
   {/* Hiển thị danh sách hình ảnh */}
-  {activity.images && activity.images.length > 0 && (
+  {activity.image && activity.image.length > 0 && (
     <div className="grid grid-cols-2 gap-4 mt-2">
-      {activity.images.map((img, imgIdx) => (
+      {activity.image.map((img, imgIdx) => (
         <div key={imgIdx} className="relative">
           <img src={img} alt={`Hoạt động ${index + 1} - Ảnh ${imgIdx + 1}`} className="w-full h-auto rounded-lg shadow-md" />
           <button
-  type="button"
-  className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 transition ease-in-out duration-200 shadow-lg transform hover:scale-110"
-  onClick={() => handleRemoveImage(idx)}
->
-  <span className="text-lg font-semibold">X</span>
-</button>
-
+            type="button"
+            className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1 hover:bg-red-600"
+            onClick={() => handleRemoveImage(imgIdx, "activity", index)}
+          >
+            X
+          </button>
         </div>
       ))}
     </div>

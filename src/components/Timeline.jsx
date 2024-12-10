@@ -69,7 +69,7 @@ const Timeline = () => {
         title: newEvent.title,
         year: newEvent.year,
         description: newEvent.description,
-        image: [newEvent.image],  // Lưu 1 image cho sự kiện chính
+        image: newEvent.image,  
         activities: newEvent.activities,
       };
 
@@ -127,16 +127,19 @@ const Timeline = () => {
   }));
 
   // Tạo edges từ events state
-  const edges = events.slice(1).map((event, index) => ({
-    id: `e${events[index].id}-${event.id}`,
-    source: `${events[index].id}`,
-    target: `${event.id}`,
-    animated: true,
-    style: {
-      stroke: "#4A90E2",
-      strokeWidth: 2,
-    },
-  }));
+  const edges = events.map((event, index) => {
+    if (index === 0) return null; // Không tạo edge cho sự kiện đầu tiên
+    return {
+      id: `e${events[index - 1].id}-${event.id}`, // Đảm bảo kết nối từ sự kiện trước đó
+      source: `${events[index - 1].id}`,
+      target: `${event.id}`,
+      animated: true,
+      style: {
+        stroke: "#4A90E2",
+        strokeWidth: 2,
+      },
+    };
+  }).filter(edge => edge !== null);
 
   return (
     <div className="h-full w-full relative timeline-container">
