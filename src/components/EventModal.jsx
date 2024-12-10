@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import Modal from "react-modal";
+import axios from "axios";
 import "../App.css";
+
 Modal.setAppElement("#root");
 
-// Component hiển thị hình ảnh trong modal
 const ImageModal = ({ isOpen, src, onClose }) => (
   <Modal
     isOpen={isOpen}
@@ -39,6 +40,7 @@ const ImageModal = ({ isOpen, src, onClose }) => (
 const EventModal = ({ isOpen, onClose, event }) => {
   const [selectedActivity, setSelectedActivity] = useState(0);
   const [imageModal, setImageModal] = useState({ isOpen: false, src: "" });
+  const [imageUploading, setImageUploading] = useState(false);
 
   if (!event) return null;
 
@@ -52,6 +54,39 @@ const EventModal = ({ isOpen, onClose, event }) => {
 
   const closeImageModal = () => {
     setImageModal({ isOpen: false, src: "" });
+  };
+
+  const handleImageUpload = async (file, activityIndex) => {
+    if (!file || activityIndex === null) {
+      console.error("File hoặc chỉ số hoạt động không hợp lệ");
+      return;
+    }
+
+    setImageUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "unsigned");
+
+    try {
+      const res = await axios.post(
+        "https://api.cloudinary.com/v1_1/dxggv6rnr/image/upload",
+        formData
+      );
+      const imagePath = res.data.secure_url;
+
+      const updatedActivities = [...event.activities];
+      if (!updatedActivities[activityIndex].image) {
+        updatedActivities[activityIndex].image = [];
+      }
+      updatedActivities[activityIndex].image.push(imagePath);
+      event.activities = updatedActivities; 
+
+    } catch (error) {
+      console.error("Lỗi khi upload ảnh:", error);
+      alert("Upload ảnh thất bại!");
+    } finally {
+      setImageUploading(false);
+    }
   };
 
   const selectedActivityData = event.activities?.[selectedActivity];
@@ -68,9 +103,10 @@ const EventModal = ({ isOpen, onClose, event }) => {
           {/* Sidebar */}
           <div className="w-full lg:w-1/4 bg-gray-50 p-4 border-b lg:border-b-0 lg:border-r border-gray-200 overflow-y-auto">
             <h3 className="text-xl font-bold mb-4 text-purple-600">Danh sách hoạt động</h3>
-            <ul className="space-y-4">
+            <ul className="space-y-7 relative">
               {event.activities.map((activity, index) => (
                 <li key={index} className="relative">
+                  {/* Button cho activity */}
                   <button
                     className={`w-full px-4 py-2 text-left rounded-lg ${
                       selectedActivity === index
@@ -81,38 +117,14 @@ const EventModal = ({ isOpen, onClose, event }) => {
                   >
                     {activity.title}
                   </button>
-                  {index < event.activities.length - 1 && (
-                    <div className="absolute left-1/2 transform -translate-x-1/2 top-full h-6">
-                      <span className="block w-0.5 h-6 bg-gray-400 mx-auto"></span>
-                    </div>
+                  {index !== event.activities.length - 1 && (
+                    <span className="absolute left-1/2 transform -translate-x-1/2 top-full h-8 w-px bg-gray-300"></span>
                   )}
                 </li>
               ))}
             </ul>
           </div>
-
-          {/* Nội dung chi tiết */}
           <div className="w-full lg:w-3/4 p-6 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative flex-1">
-            {/* Nút đóng */}
-            <button
-              className="absolute top-4 right-4 p-2 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg focus:ring-2 focus:ring-purple-300 flex items-center justify-center"
-              onClick={onClose}
-              aria-label="Đóng"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 9.293l5.293-5.293a1 1 0 111.414 1.414L11.414 10l5.293 5.293a1 1 0 01-1.414 1.414L10 11.414l-5.293 5.293a1 1 0 01-1.414-1.414L8.586 10 3.293 4.707a1 1 0 011.414-1.414L10 8.586z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-
             <h2 className="text-2xl lg:text-3xl font-extrabold mb-4 text-purple-600">
               {selectedActivityData?.title || "Nội dung không tồn tại"}
             </h2>
@@ -129,13 +141,29 @@ const EventModal = ({ isOpen, onClose, event }) => {
                     onClick={() => openImageModal(img)}
                   />
                 ))}
+
+                <button
+                  className="bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:bg-gray-300 transition-colors"
+                  onClick={() => document.getElementById("add-image-input").click()}
+                  disabled={imageUploading}
+                >
+                  {imageUploading ? "Đang tải..." : "+ Thêm ảnh mới"}
+                </button>
+
+                <input
+                  type="file"
+                  id="add-image-input"
+                  className="hidden"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => handleImageUpload(e.target.files[0], selectedActivity)}
+                />
               </div>
             )}
           </div>
         </div>
       </Modal>
 
-      {/* Image Modal */}
       <ImageModal
         isOpen={imageModal.isOpen}
         src={imageModal.src}

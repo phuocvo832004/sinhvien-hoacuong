@@ -9,15 +9,15 @@ import EventFormModal from "./EventFormModal";
 const Timeline = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setModalOpen] = useState(false);
-  const [events, setEvents] = useState([]);  // Dùng state để lưu events từ Firebase
+  const [events, setEvents] = useState([]);  
   const [newEvent, setNewEvent] = useState({
     title: "",
     year: "",
     description: "",
     image: "",
     activities: [{ title: "", description: "", image: "" }],
-  }); // Lưu thông tin sự kiện mới
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false); // Quản lý trạng thái modal nhập liệu
+  }); 
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false); 
   const [windowDimensions, setWindowDimensions] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -35,21 +35,20 @@ const Timeline = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Fetch events từ Firebase khi component mount
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const eventsRef = collection(db, "events");
         const snapshot = await getDocs(eventsRef);
         const eventsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setEvents(eventsData);  // Lưu dữ liệu vào state
+        setEvents(eventsData);  
       } catch (error) {
         console.error("Error fetching events:", error);
       }
     };
 
     fetchEvents();
-  }, []); // Chạy 1 lần khi component mount
+  }, []); 
 
   const openModal = (event) => {
     if (isModalOpen) return;
@@ -62,7 +61,6 @@ const Timeline = () => {
     setModalOpen(false);
   };
 
-  // Hàm thêm sự kiện mới
   const addEvent = async () => {
     try {
       const newEventData = {
@@ -85,7 +83,6 @@ const Timeline = () => {
     }
   };
 
-  // Hàm cập nhật thông tin sự kiện mới
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewEvent((prev) => ({
@@ -94,7 +91,6 @@ const Timeline = () => {
     }));
   };
 
-  // Hàm cập nhật thông tin hoạt động
   const handleActivityChange = (index, e) => {
     const { name, value } = e.target;
     const updatedActivities = [...newEvent.activities];
@@ -102,7 +98,6 @@ const Timeline = () => {
     setNewEvent({ ...newEvent, activities: updatedActivities });
   };
 
-  // Hàm thêm hoạt động mới
   const addActivity = () => {
     setNewEvent({
       ...newEvent,
@@ -110,12 +105,12 @@ const Timeline = () => {
     });
   };
 
-  // Tạo nodes từ events state
   const nodes = events.map((event, index) => ({
     id: `${event.id}`,
     position: { x: index * 350, y: 50 },
     data: {
       label: <EventNode event={event} onSelect={openModal} />,
+      
     },
     style: {
       background: "#ffffff",
@@ -128,7 +123,6 @@ const Timeline = () => {
     },
   }));
 
-  // Tạo edges từ events state
   const edges = events.map((event, index) => {
     if (index === 0) return null; 
     return {
@@ -166,9 +160,8 @@ const Timeline = () => {
           <Background color="#ddd" gap={16} />
         </ReactFlow>
         
-        {/* Nút thêm sự kiện */}
         <button
-          onClick={() => setIsFormModalOpen(true)}  // Mở modal nhập liệu
+          onClick={() => setIsFormModalOpen(true)} 
           className="absolute top-5 right-5 bg-[#fc536c] text-white py-2 px-4 rounded-lg transform transition-transform duration-300 hover:bg-[#cc043d] hover:scale-90"
         >
           Thêm sự kiện

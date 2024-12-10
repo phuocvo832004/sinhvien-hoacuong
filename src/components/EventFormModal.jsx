@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const EventFormModal = ({
@@ -16,7 +16,6 @@ const EventFormModal = ({
   const [imageUploading, setImageUploading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState([]);
 
-  // Đồng bộ uploadedImages với newEvent.image
   useEffect(() => {
     if (newEvent.image) {
       setUploadedImages(newEvent.image);
@@ -103,7 +102,6 @@ const EventFormModal = ({
         },
       }}
     >
-      {/* Sidebar bên trái */}
       <div style={{ flex: "1", display: "flex", flexDirection: "column", gap: "15px" }}>
         <h2 className="text-2xl font-bold mb-4 text-gray-700 text-center">Thêm sự kiện mới</h2>
         <div>
@@ -143,13 +141,13 @@ const EventFormModal = ({
           <input
             type="file"
             accept="image/*"
+            multiple
             onChange={(e) => handleImageUpload(e.target.files[0])}
             className="w-full p-3 mt-2 border border-gray-300 rounded-lg"
           />
 
           {imageUploading && <p className="text-sm text-blue-500 mt-2">Đang upload hình ảnh...</p>}
 
-          {/* Danh sách hình ảnh đã tải lên */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
             {uploadedImages.map((img, idx) => (
               <div key={idx} className="relative">
@@ -179,7 +177,6 @@ const EventFormModal = ({
         </button>
       </div>
 
-      {/* Phần hoạt động bên phải */}
       <div style={{ flex: "2", overflowY: "auto" }}>
         <h3 className="text-xl font-semibold text-gray-700 mb-4">Danh sách hoạt động</h3>
         {newEvent.activities.map((activity, index) => (
@@ -211,6 +208,7 @@ const EventFormModal = ({
               <input
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (file) {
