@@ -22,22 +22,28 @@ const EventFormModal = ({
     }
   }, [newEvent.image]);
 
-  const handleImageUpload = async (file, context = "sidebar", activityIndex = null) => {
+  const handleImageUpload = async (files, context = "sidebar", activityIndex = null) => {
     setImageUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "unsigned");
-
+    const uploadedImages = [];
+  
     try {
-      const res = await axios.post(
-        "https://api.cloudinary.com/v1_1/dxggv6rnr/image/upload",
-        formData
-      );
-      const imagePath = res.data.secure_url;
-
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "unsigned");
+  
+        const res = await axios.post(
+          "https://api.cloudinary.com/v1_1/dxggv6rnr/image/upload",
+          formData
+        );
+        const imagePath = res.data.secure_url;
+        uploadedImages.push(imagePath);
+      }
+  
+      // Xử lý các ảnh đã upload theo context
       if (context === "sidebar") {
         setUploadedImages((prev) => {
-          const updatedImages = [...prev, imagePath];
+          const updatedImages = [...prev, ...uploadedImages];
           handleInputChange({ target: { name: "image", value: updatedImages } });
           return updatedImages;
         });
@@ -46,11 +52,12 @@ const EventFormModal = ({
         if (!updatedActivities[activityIndex].image) {
           updatedActivities[activityIndex].image = [];
         }
-        updatedActivities[activityIndex].image.push(imagePath);
+        updatedActivities[activityIndex].image.push(...uploadedImages);
         handleActivityChange(activityIndex, {
           target: { name: "image", value: updatedActivities[activityIndex].image },
         });
       }
+  
       toast.success("Upload thành công!", {
         position: "top-right",
       });
@@ -63,6 +70,7 @@ const EventFormModal = ({
       setImageUploading(false);
     }
   };
+  
 
   const handleRemoveImage = (indexToRemove, context = "sidebar", activityIndex = null) => {
     if (context === "sidebar") {
@@ -142,7 +150,7 @@ const EventFormModal = ({
             type="file"
             accept="image/*"
             multiple
-            onChange={(e) => handleImageUpload(e.target.files[0])}
+            onChange={(e) => handleImageUpload(e.target.files)}
             className="w-full p-3 mt-2 border border-gray-300 rounded-lg"
           />
 
@@ -210,9 +218,9 @@ const EventFormModal = ({
                 accept="image/*"
                 multiple
                 onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    handleImageUpload(file, "activity", index);
+                  const files = e.target.files;
+                  if (files) {
+                    handleImageUpload(files, "activity", index);
                   }
                 }}
                 className="w-full p-2 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"

@@ -56,31 +56,39 @@ const EventModal = ({ isOpen, onClose, event }) => {
     setImageModal({ isOpen: false, src: "" });
   };
 
-  const handleImageUpload = async (file, activityIndex) => {
-    if (!file || activityIndex === null) {
-      console.error("File hoặc chỉ số hoạt động không hợp lệ");
+  const handleImageUpload = async (files, activityIndex) => {
+    if (!files || activityIndex === null) {
+      console.error("Danh sách file hoặc chỉ số hoạt động không hợp lệ");
       return;
     }
-
+  
     setImageUploading(true);
+  
+    const uploadedImages = [];
     const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "unsigned");
-
+  
     try {
-      const res = await axios.post(
-        "https://api.cloudinary.com/v1_1/dxggv6rnr/image/upload",
-        formData
-      );
-      const imagePath = res.data.secure_url;
-
+      for (const file of files) {
+        formData.append("file", file);
+        formData.append("upload_preset", "unsigned");
+  
+        const res = await axios.post(
+          "https://api.cloudinary.com/v1_1/dxggv6rnr/image/upload",
+          formData
+        );
+  
+        uploadedImages.push(res.data.secure_url);
+        formData.delete("file"); // Reset FormData cho ảnh tiếp theo
+      }
+  
       const updatedActivities = [...event.activities];
       if (!updatedActivities[activityIndex].image) {
         updatedActivities[activityIndex].image = [];
       }
-      updatedActivities[activityIndex].image.push(imagePath);
-      event.activities = updatedActivities; 
-
+  
+      updatedActivities[activityIndex].image.push(...uploadedImages);
+      event.activities = updatedActivities;
+  
     } catch (error) {
       console.error("Lỗi khi upload ảnh:", error);
       alert("Upload ảnh thất bại!");
@@ -88,6 +96,7 @@ const EventModal = ({ isOpen, onClose, event }) => {
       setImageUploading(false);
     }
   };
+  
 
   const selectedActivityData = event.activities?.[selectedActivity];
 
@@ -141,7 +150,6 @@ const EventModal = ({ isOpen, onClose, event }) => {
                     onClick={() => openImageModal(img)}
                   />
                 ))}
-
                 <button
                   className="bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:bg-gray-300 transition-colors"
                   onClick={() => document.getElementById("add-image-input").click()}
@@ -149,14 +157,13 @@ const EventModal = ({ isOpen, onClose, event }) => {
                 >
                   {imageUploading ? "Đang tải..." : "+ Thêm ảnh mới"}
                 </button>
-
                 <input
                   type="file"
                   id="add-image-input"
                   className="hidden"
                   accept="image/*"
                   multiple
-                  onChange={(e) => handleImageUpload(e.target.files[0], selectedActivity)}
+                  onChange={(e) => handleImageUpload(e.target.files, selectedActivity)}
                 />
               </div>
             )}
