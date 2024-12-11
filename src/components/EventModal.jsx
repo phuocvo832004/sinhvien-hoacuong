@@ -61,34 +61,32 @@ const EventModal = ({ isOpen, onClose, event }) => {
       console.error("Danh sách file hoặc chỉ số hoạt động không hợp lệ");
       return;
     }
-  
+
     setImageUploading(true);
-  
     const uploadedImages = [];
     const formData = new FormData();
-  
+
     try {
       for (const file of files) {
         formData.append("file", file);
         formData.append("upload_preset", "unsigned");
-  
+
         const res = await axios.post(
           "https://api.cloudinary.com/v1_1/dxggv6rnr/image/upload",
           formData
         );
-  
+
         uploadedImages.push(res.data.secure_url);
-        formData.delete("file"); // Reset FormData cho ảnh tiếp theo
+        formData.delete("file");
       }
-  
+
       const updatedActivities = [...event.activities];
       if (!updatedActivities[activityIndex].image) {
         updatedActivities[activityIndex].image = [];
       }
-  
+
       updatedActivities[activityIndex].image.push(...uploadedImages);
       event.activities = updatedActivities;
-  
     } catch (error) {
       console.error("Lỗi khi upload ảnh:", error);
       alert("Upload ảnh thất bại!");
@@ -96,7 +94,46 @@ const EventModal = ({ isOpen, onClose, event }) => {
       setImageUploading(false);
     }
   };
-  
+
+  const handleEditActivity = (index) => {
+    const updatedTitle = prompt(
+      "Nhập tiêu đề mới cho hoạt động:",
+      event.activities[index].title
+    );
+
+    if (updatedTitle) {
+      const updatedActivities = [...event.activities];
+      updatedActivities[index].title = updatedTitle;
+      event.activities = updatedActivities;
+    }
+  };
+
+  const handleEditContent = (index) => {
+    const updatedDescription = prompt(
+      "Nhập mô tả mới cho hoạt động:",
+      event.activities[index].description
+    );
+
+    if (updatedDescription) {
+      const updatedActivities = [...event.activities];
+      updatedActivities[index].description = updatedDescription;
+      event.activities = updatedActivities;
+    }
+  };
+
+  const handleDeleteActivity = (index) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa hoạt động này?")) {
+      const updatedActivities = [...event.activities];
+      updatedActivities.splice(index, 1);
+      event.activities = updatedActivities;
+
+      if (selectedActivity === index) {
+        setSelectedActivity(0);
+      } else if (selectedActivity > index) {
+        setSelectedActivity(selectedActivity - 1);
+      }
+    }
+  };
 
   const selectedActivityData = event.activities?.[selectedActivity];
 
@@ -112,10 +149,10 @@ const EventModal = ({ isOpen, onClose, event }) => {
           {/* Sidebar */}
           <div className="w-full lg:w-1/4 bg-gray-50 p-4 border-b lg:border-b-0 lg:border-r border-gray-200 overflow-y-auto">
             <h3 className="text-xl font-bold mb-4 text-purple-600">Danh sách hoạt động</h3>
-            <ul className="space-y-7 relative">
+            <ul className="relative">
               {event.activities.map((activity, index) => (
-                <li key={index} className="relative">
-                  {/* Button cho activity */}
+                <li key={index} className="relative flex flex-col items-center">
+                  {/* Nút hoạt động */}
                   <button
                     className={`w-full px-4 py-2 text-left rounded-lg ${
                       selectedActivity === index
@@ -126,12 +163,17 @@ const EventModal = ({ isOpen, onClose, event }) => {
                   >
                     {activity.title}
                   </button>
+                  {/* Đường nối */}
                   {index !== event.activities.length - 1 && (
-                    <span className="absolute left-1/2 transform -translate-x-1/2 top-full h-8 w-px bg-gray-300"></span>
+                    <span
+                      className="w-px bg-gray-300"
+                      style={{ height: '32px' }} // Điều chỉnh chiều cao theo ý bạn
+                    ></span>
                   )}
                 </li>
               ))}
             </ul>
+
           </div>
           <div className="w-full lg:w-3/4 p-6 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative flex-1">
             <h2 className="text-2xl lg:text-3xl font-extrabold mb-4 text-purple-600">
@@ -140,7 +182,7 @@ const EventModal = ({ isOpen, onClose, event }) => {
             <p className="mb-4 text-gray-700">{selectedActivityData?.description}</p>
 
             {Array.isArray(selectedActivityData?.image) && (
-              <div className="image-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              <div className="image-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 mr-14">
                 {selectedActivityData.image.map((img, idx) => (
                   <img
                     key={idx}
@@ -157,6 +199,7 @@ const EventModal = ({ isOpen, onClose, event }) => {
                 >
                   {imageUploading ? "Đang tải..." : "+ Thêm ảnh mới"}
                 </button>
+
                 <input
                   type="file"
                   id="add-image-input"
@@ -167,6 +210,22 @@ const EventModal = ({ isOpen, onClose, event }) => {
                 />
               </div>
             )}
+            <div className="absolute bottom-4 right-4 grid gap-3">
+              <button
+                className="p-3 bg-gradient-to-r from-blue-400 to-blue-600 text-white rounded-full shadow-lg hover:from-blue-500 hover:to-blue-700 transition-transform transform hover:scale-110"
+                onClick={() => handleEditContent(selectedActivity)}
+                title="Chỉnh sửa"
+              >
+                ✏️
+              </button>
+              <button
+                className="p-3 bg-gradient-to-r from-red-400 to-red-600 text-white rounded-full shadow-lg hover:from-red-500 hover:to-red-700 transition-transform transform hover:scale-110"
+                onClick={() => handleDeleteActivity(selectedActivity)}
+                title="Xóa"
+              >
+                🗑️
+              </button>
+            </div>
           </div>
         </div>
       </Modal>

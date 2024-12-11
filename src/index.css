@@ -40,7 +40,7 @@
   background: #ffffff;
   border-radius: 12px;
   outline: none;
-  width: 80%; /* Thu gọn chiều rộng cho gọn gàng */
+  width: 90%; /* Thu gọn chiều rộng cho gọn gàng */
   height: 85%; /* Chiều cao vừa đủ để hiển thị nội dung */
   padding: 0; /* Bỏ padding, vì đã có layout cụ thể */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Hiệu ứng bóng nổi bật */
